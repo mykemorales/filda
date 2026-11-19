@@ -2,14 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<meta name="theme-color" content="#cfe8f3">
-<link rel="icon" href="favicon.ico" sizes="48x48">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-<meta name="apple-mobile-web-app-title" content="Go Filda">
-<style>*,*::before,*::after{box-sizing:border-box}[hidden]{display:none!important}</style>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Go Filda</title>
+<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;800&display=swap">
@@ -27,6 +22,7 @@
   --body:'Nunito',system-ui,-apple-system,sans-serif;
   color-scheme:light;
 }
+[hidden]{display:none!important}
 html,body{height:100%;overflow:hidden}
 body{
   margin:0;background:var(--sky);color:var(--ink);font-family:var(--body);
@@ -82,9 +78,49 @@ button.go{
 button.go:active{transform:translateY(3px);box-shadow:0 1px 0 var(--beak-deep)}
 button.go:focus-visible{outline:3px solid var(--deep);outline-offset:3px}
 .new{color:#b8640a;font-weight:800;font-size:14px}
+.row{display:grid;grid-template-columns:1.4fr 1fr;gap:10px}
+button.soft{
+  font-family:var(--display);font-size:20px;font-weight:600;border:0;border-radius:16px;
+  padding:12px 18px;background:#fff;color:var(--ink);box-shadow:0 4px 0 rgba(22,50,74,.22),inset 0 0 0 2px rgba(22,50,74,.12);
+  cursor:pointer;touch-action:manipulation;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+}
+button.soft:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(22,50,74,.22),inset 0 0 0 2px rgba(22,50,74,.12)}
+button.soft:focus-visible,button.back:focus-visible,.skin:focus-visible{outline:3px solid var(--deep);outline-offset:3px}
+.homeBest{font-weight:800;font-size:14px;color:var(--muted)}
+.homeBest b{color:var(--ink);font-family:var(--display);font-weight:600;font-size:17px}
+#shop{place-items:end center;padding-block-end:calc(env(safe-area-inset-bottom,0px) + 16px);background:linear-gradient(180deg,rgba(14,42,64,0) 50%,rgba(14,42,64,.3))}
+.shopCard{max-width:380px;gap:12px;padding:14px 16px 18px}
+.shopTop{display:grid;grid-template-columns:40px 1fr 40px;align-items:center}
+.shopTop h2{font-size:32px}
+button.back{width:40px;height:40px;border:0;border-radius:12px;background:transparent;color:var(--ink);display:grid;place-items:center;cursor:pointer;touch-action:manipulation}
+button.back:active{background:rgba(22,50,74,.08)}
+.skins{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.skin{
+  border:0;border-radius:16px;background:#fff;padding:12px 4px 10px;cursor:pointer;touch-action:manipulation;
+  display:grid;justify-items:center;gap:6px;color:var(--ink);font-family:var(--body);
+  box-shadow:inset 0 0 0 2px rgba(22,50,74,.12);transition:box-shadow .15s,transform .15s;
+}
+.skin:active{transform:scale(.96)}
+.skin[aria-checked="true"]{box-shadow:inset 0 0 0 3px var(--beak),0 3px 0 var(--beak-deep);background:#fff8ea}
+.skin .nm{font-family:var(--display);font-weight:600;font-size:18px;line-height:1}
+.skin .tag{font-weight:800;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);min-height:12px}
+.skin[aria-checked="true"] .tag{color:#b8640a}
+/* tiny blocky penguin, same build as the 3D one */
+.mini{position:relative;width:46px;height:58px}
+.mini i{position:absolute;display:block}
+.mini .hd{left:17px;top:0;width:12px;height:16px;border-radius:6px 6px 3px 3px;background:var(--w);overflow:hidden}
+.mini .hd::before{content:"";position:absolute;inset:0 0 auto;height:5px;background:var(--c)}
+.mini .hd::after{content:"";position:absolute;left:3px;top:10px;width:6px;height:3px;background:var(--b);clip-path:polygon(0 0,100% 0,50% 100%)}
+.mini .bd{left:6px;top:13px;width:34px;height:31px;border-radius:3px;background:var(--t);box-shadow:inset 0 -3px 0 rgba(0,0,0,.06)}
+.mini .ov{left:13px;top:18px;width:20px;height:22px;border-radius:50%;background:var(--o)}
+.mini .ar{top:16px;width:4px;height:28px;border-radius:2px;background:var(--a)}
+.mini .ar.l{left:2px;transform:rotate(14deg)}.mini .ar.r{right:2px;transform:rotate(-14deg)}
+.mini .lg{top:43px;width:10px;height:15px;border-radius:0 0 2px 2px}
+.mini .lg.l{left:9px;background:linear-gradient(90deg,var(--lo) 50%,var(--li) 50%)}
+.mini .lg.r{right:9px;background:linear-gradient(90deg,var(--li) 50%,var(--lo) 50%)}
+.mini .lg,.mini .bd,.mini .hd{outline:1px solid rgba(22,50,74,.1)}
 @media (prefers-reduced-motion:reduce){.hint{transition:none}}
 </style>
-
 </head>
 <body>
 <div id="game" aria-label="Go Filda game"></div>
@@ -95,30 +131,51 @@ button.go:focus-visible{outline:3px solid var(--deep);outline-offset:3px}
 </div>
 <div class="hint" id="hint" hidden>Swipe ← → to steer · swipe up or tap to jump</div>
 
+<!-- HOME -->
 <div class="overlay" id="start">
   <div class="card">
     <div class="eyebrow">An endless ice slide</div>
     <h1>Go Filda</h1>
-    <ul class="how">
-      <li><b>Swipe left or right</b> to change lane</li>
-      <li><b>Swipe up or tap</b> to jump low things</li>
-      <li>Snowmen and ice spires are too tall, so steer round them</li>
-    </ul>
-    <button class="go" id="startBtn" type="button">Start sliding</button>
+    <div class="homeBest" id="homeBest" hidden>Best run <b id="homeBestN">0</b> m</div>
+    <div class="row">
+      <button class="go" id="startBtn" type="button">Play</button>
+      <button class="soft" id="shopBtn" type="button">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M5 8h14l-1.2 11.2a1 1 0 0 1-1 .8H7.2a1 1 0 0 1-1-.8L5 8Z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M9 10V7a3 3 0 0 1 6 0v3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+        Shop
+      </button>
+    </div>
   </div>
 </div>
 
+<!-- SHOP -->
+<div class="overlay" id="shop" hidden>
+  <div class="card shopCard">
+    <div class="shopTop">
+      <button class="back" id="shopBack" type="button" aria-label="Back to home">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <h2>Shop</h2>
+      <span class="spacer"></span>
+    </div>
+    <div class="eyebrow">Pick who slides</div>
+    <div class="skins" id="skins" role="radiogroup" aria-label="Characters"></div>
+    <button class="go" id="shopPlay" type="button">Play</button>
+  </div>
+</div>
+
+<!-- CRASH PROMPT -->
 <div class="overlay" id="over" hidden>
   <div class="card">
     <div class="eyebrow">Bonk!</div>
-    <h2>Filda wiped out</h2>
+    <h2 id="overTitle">Filda wiped out</h2>
     <div class="stats">
       <div class="stat"><span id="oDist">0</span><small>Metres</small></div>
       <div class="stat"><span id="oFish">0</span><small>Fish</small></div>
       <div class="stat"><span id="oBest">0</span><small>Best m</small></div>
     </div>
     <div class="new" id="newBest" hidden>New best run!</div>
-    <button class="go" id="againBtn" type="button">Slide again</button>
+    <button class="go" id="againBtn" type="button">Keep sliding</button>
+    <button class="soft" id="homeBtn" type="button">Home</button>
   </div>
 </div>
 
@@ -182,6 +239,31 @@ const M={
   fish:new THREE.MeshStandardMaterial({color:0x4f9fd3,roughness:.35,metalness:.2,emissive:0x0d2c44,emissiveIntensity:.35}),
   fishBelly:new THREE.MeshStandardMaterial({color:0xd9eef8,roughness:.4}),
 };
+
+/* ---------- skins: same build as Filda, different colours per part ---------- */
+const WHITE=0xefebe6,BLACK=0x1c1c1f;
+const SKINS={
+  filda:{name:'Filda',tag:'The original',head:WHITE,cap:BLACK,beak:0xf4a81d,torso:WHITE,arms:BLACK,legIn:WHITE,legOut:WHITE,oval:null},
+  beba:{name:'Beba',tag:'Green belly',head:WHITE,cap:WHITE,beak:0xd93a2b,torso:WHITE,arms:BLACK,legIn:0x2f6fd1,legOut:0x2f6fd1,oval:0x3fae4a},
+  dyda:{name:'Dyda',tag:'Sunny legs',head:WHITE,cap:WHITE,beak:0xf4a81d,torso:BLACK,arms:BLACK,legIn:0xf28a1e,legOut:0xf7cf2a,oval:null},
+};
+const P={};
+['head','cap','beak','torso','arms','legIn','legOut','oval'].forEach(k=>{
+  P[k]=new THREE.MeshStandardMaterial({roughness:k==='beak'?.45:k==='arms'||k==='cap'?.7:.85});
+});
+P.eye=new THREE.MeshStandardMaterial({color:BLACK,roughness:.5});
+let skin='filda';try{const s=localStorage.getItem('filda-skin');if(SKINS[s])skin=s;}catch(e){}
+let ovalMesh=null,solidLegs=[],splitLegs=[];
+function applySkin(id){
+  const k=SKINS[id];
+  ['head','cap','beak','torso','arms','legIn','legOut'].forEach(p=>P[p].color.setHex(k[p]));
+  if(k.oval!=null)P.oval.color.setHex(k.oval);
+  if(ovalMesh)ovalMesh.visible=k.oval!=null;
+  // only two-tone legs are built from halves; single-colour legs are one solid piece (no seam)
+  const split=k.legIn!==k.legOut;
+  solidLegs.forEach(m=>m.visible=!split);splitLegs.forEach(m=>m.visible=split);
+}
+applySkin(skin);
 
 function rrShape(w,h,r){
   const s=new THREE.Shape(),x=-w/2,y=-h/2;
@@ -257,24 +339,36 @@ scene.add(player);
    body 1.5w x 1.38h, head Ø.486 rising .526 above body, cap from .36 up,
    eyes .246 up / .18 apart, beak .272w x .154h, arms Ø.124 x ~1.32 at 14°,
    legs .44w x .684h, .80 apart centre to centre */
-model.add(mesh(rbox(1.5,1.38,.8,.05),M.white));
+model.add(mesh(rbox(1.5,1.38,.8,.05),P.torso));
+// Beba's green oval, a thin disc on the front of the torso
+const ovalGeo=new THREE.CylinderGeometry(.5,.5,.02,48);ovalGeo.rotateX(Math.PI/2);
+ovalMesh=mesh(ovalGeo,P.oval,false);ovalMesh.scale.set(.88,1.06,1);ovalMesh.position.set(0,-.02,.405);model.add(ovalMesh);
+applySkin(skin);
 const HR=.243;
 const headPivot=new THREE.Group();headPivot.position.y=.69;model.add(headPivot);
 const head=new THREE.Group();headPivot.add(head);
-const headCyl=mesh(new THREE.CylinderGeometry(HR,HR,.46,40),M.white);headCyl.position.y=.13;head.add(headCyl);
-const band=mesh(new THREE.CylinderGeometry(HR+.004,HR+.004,.056,40),M.black);band.position.y=.388;head.add(band);
-const dome=mesh(new THREE.SphereGeometry(HR+.004,40,14,0,Math.PI*2,0,Math.PI/2),M.black);
+const headCyl=mesh(new THREE.CylinderGeometry(HR,HR,.46,40),P.head);headCyl.position.y=.13;head.add(headCyl);
+const band=mesh(new THREE.CylinderGeometry(HR+.004,HR+.004,.056,40),P.cap);band.position.y=.388;head.add(band);
+const dome=mesh(new THREE.SphereGeometry(HR+.004,40,14,0,Math.PI*2,0,Math.PI/2),P.cap);
 dome.scale.y=.11/(HR+.004);dome.position.y=.416;head.add(dome);
 const eyeGeo=new THREE.SphereGeometry(.033,14,10);
-[-.09,.09].forEach(x=>{const e=mesh(eyeGeo,M.black,false);e.scale.y=1.18;e.position.set(x,.246,.226);head.add(e);});
+[-.09,.09].forEach(x=>{const e=mesh(eyeGeo,P.eye,false);e.scale.y=1.18;e.position.set(x,.246,.226);head.add(e);});
 const beakGeo=new THREE.ConeGeometry(.157,.12,3);beakGeo.rotateX(Math.PI/2);beakGeo.scale(1,.65,1);
-const beak=mesh(beakGeo,M.beak);beak.position.set(0,.119,HR+.04);head.add(beak);
+const beak=mesh(beakGeo,P.beak);beak.position.set(0,.119,HR+.04);head.add(beak);
 const ARM_SPLAY=.24;
 const armGeo=new THREE.CapsuleGeometry(.062,1.2,6,12);
 const arms=[-1,1].map(s=>{const p=new THREE.Group();p.position.set(s*.72,.556,-.08);
-  const a=mesh(armGeo,M.black);a.position.y=-.6;p.add(a);p.rotation.z=s*ARM_SPLAY;model.add(p);return p;});
+  const a=mesh(armGeo,P.arms);a.position.y=-.6;p.add(a);p.rotation.z=s*ARM_SPLAY;model.add(p);return p;});
+// each leg is split down the middle: inner half and outer half (Dyda: orange inside, yellow outside)
+const halfLegGeo=rbox(.22,.684,.42,.03);
 const legGeo=rbox(.44,.684,.42,.04);
-[-.402,.402].forEach(x=>{const l=mesh(legGeo,M.white);l.position.set(x,-1.032,-.04);model.add(l);});
+[-1,1].forEach(s=>{
+  const solid=mesh(legGeo,P.legIn);solid.position.set(s*.402,-1.032,-.04);model.add(solid);solidLegs.push(solid);
+  const inner=mesh(halfLegGeo,P.legIn);inner.position.set(s*(.402-.11),-1.032,-.04);model.add(inner);
+  const outer=mesh(halfLegGeo,P.legOut);outer.position.set(s*(.402+.11),-1.032,-.04);model.add(outer);
+  splitLegs.push(inner,outer);
+});
+applySkin(skin);
 
 /* ---------- obstacles & fish ---------- */
 const G={
@@ -369,18 +463,61 @@ function emitSpray(x){
 /* ---------- state ---------- */
 let state='menu',speed=0,dist=0,fishCount=0,lane=1,px=0,py=STAND_Y,vy=0,grounded=true;
 let sinceRow=0,crashT=0,shake=0,t=0,hintShown=false,introT=0,camZoom=1;
+let waveT=0,invuln=0,runSpeed=14;
 let best=0;try{best=+localStorage.getItem('filda-best')||0;}catch(e){}
 
 function clearWorld(){
   obstacles.forEach(o=>scene.remove(o.obj));fishes.forEach(f=>scene.remove(f));
   obstacles=[];fishes=[];
 }
-function startGame(){
-  clearWorld();
-  state='intro';introT=0;speed=0;dist=0;fishCount=0;lane=1;px=0;py=STAND_Y;vy=0;grounded=true;sinceRow=8;
+function resetPose(){
+  lane=1;px=0;py=STAND_Y;vy=0;grounded=true;invuln=0;player.visible=true;
   player.rotation.set(0,0,0);rig.rotation.set(0,0,0);pose.rotation.set(0,0,0);
-  $('start').hidden=true;$('over').hidden=true;$('hud').hidden=false;
+}
+function show(id){['start','shop','over'].forEach(k=>$(k).hidden=k!==id);$('hud').hidden=id!==null;}
+function goHome(){
+  clearWorld();resetPose();state='menu';speed=0;
+  $('homeBest').hidden=!best;$('homeBestN').textContent=best;
+  show('start');
+}
+function openShop(){
+  state='shop';renderSkins();show('shop');
+  setTimeout(()=>{const b=document.querySelector('.skin[aria-checked="true"]');b&&b.focus({preventScroll:true});},50);
+}
+function pickSkin(id){
+  skin=id;applySkin(id);waveT=1.6;try{localStorage.setItem('filda-skin',id);}catch(e){}
+  renderSkins();const b=document.querySelector('.skin[data-id="'+id+'"]');b&&b.focus({preventScroll:true});
+}
+function renderSkins(){
+  const hex=n=>'#'+n.toString(16).padStart(6,'0');
+  $('skins').innerHTML=Object.entries(SKINS).map(([id,k])=>{
+    const on=id===skin;
+    return `<button class="skin" type="button" role="radio" aria-checked="${on}" data-id="${id}" tabindex="${on?0:-1}">
+      <span class="mini" style="--w:${hex(k.head)};--c:${hex(k.cap)};--a:${hex(k.arms)};--b:${hex(k.beak)};--t:${hex(k.torso)};--li:${hex(k.legIn)};--lo:${hex(k.legOut)}" aria-hidden="true">
+        <i class="ar l"></i><i class="ar r"></i><i class="lg l"></i><i class="lg r"></i><i class="bd"></i>${k.oval!=null?`<i class="ov" style="--o:${hex(k.oval)}"></i>`:''}<i class="hd"></i>
+      </span>
+      <span class="nm">${k.name}</span><span class="tag">${on?'Selected':k.tag}</span></button>`;
+  }).join('');
+}
+$('skins').addEventListener('click',e=>{const b=e.target.closest('.skin');if(b)pickSkin(b.dataset.id);});
+$('skins').addEventListener('keydown',e=>{
+  const ids=Object.keys(SKINS),i=ids.indexOf(skin);
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'){pickSkin(ids[(i+1)%ids.length]);e.preventDefault();}
+  else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){pickSkin(ids[(i+ids.length-1)%ids.length]);e.preventDefault();}
+});
+function startGame(){
+  clearWorld();resetPose();
+  state='intro';introT=0;speed=0;dist=0;fishCount=0;sinceRow=8;
+  show(null);
   $('dist').textContent='0';$('fish').textContent='0';
+}
+function continueRun(){
+  // clear the stretch right ahead, put Filda back on his belly, and give a moment of safety
+  for(let i=obstacles.length-1;i>=0;i--){if(obstacles[i].obj.position.z>-40){scene.remove(obstacles[i].obj);obstacles.splice(i,1);}}
+  player.rotation.set(0,0,0);rig.rotation.set(0,0,0);pose.rotation.x=Math.PI/2;
+  py=BASE_Y;vy=0;grounded=true;sinceRow=0;
+  state='play';speed=Math.max(14,runSpeed*.85);invuln=2;
+  show(null);
 }
 function beginSlide(){
   state='play';speed=14;sinceRow=8;
@@ -388,18 +525,24 @@ function beginSlide(){
     setTimeout(()=>{h.style.opacity='0';setTimeout(()=>h.hidden=true,700);},3200);}
 }
 function crash(){
-  state='crash';crashT=0;vy=6;grounded=false;shake=.5;
+  runSpeed=speed;state='crash';crashT=0;vy=6;grounded=false;shake=.5;
 }
 function showOver(){
   state='over';
   const m=Math.floor(dist/2);
   const isBest=m>best;if(isBest){best=m;try{localStorage.setItem('filda-best',String(best));}catch(e){}}
+  $('overTitle').textContent=SKINS[skin].name+' wiped out';
   $('oDist').textContent=m;$('oFish').textContent=fishCount;$('oBest').textContent=best;
-  $('newBest').hidden=!isBest;$('hud').hidden=true;$('over').hidden=false;
+  $('newBest').hidden=!isBest;show('over');
   setTimeout(()=>$('againBtn').focus({preventScroll:true}),50);
 }
 $('startBtn').addEventListener('click',startGame);
-$('againBtn').addEventListener('click',startGame);
+$('shopPlay').addEventListener('click',startGame);
+$('shopBtn').addEventListener('click',openShop);
+$('shopBack').addEventListener('click',goHome);
+$('againBtn').addEventListener('click',continueRun);
+$('homeBtn').addEventListener('click',goHome);
+$('homeBest').hidden=!best;$('homeBestN').textContent=best;
 
 /* ---------- input ---------- */
 function steer(d){if(state!=='play')return;lane=Math.max(0,Math.min(2,lane+d));}
@@ -435,7 +578,7 @@ const clock=new THREE.Clock();
 function update(dt){
   t+=dt;
   if(state==='play'){speed=Math.min(34,speed+.2*dt);dist+=speed*dt;}
-  else if(state==='menu'||state==='intro')speed=0;
+  else if(state==='menu'||state==='shop'||state==='intro')speed=0;
   else speed=Math.max(0,speed-30*dt);
   const move=speed*dt;
 
@@ -465,8 +608,10 @@ function update(dt){
   // player physics
   const tx=LANES[lane];
   px+=(tx-px)*Math.min(1,dt*24);
-  if(state==='menu'||state==='intro'){
-    let turn=0,flop=0,wave=state==='menu'?.0:0,hop=0;
+  const idle=state==='menu'||state==='shop';
+  if(idle||state==='intro'){
+    let turn=0,flop=0,wave=0,hop=0;
+    if(idle&&waveT>0){waveT=Math.max(0,waveT-dt);wave=waveT>1.3?ease((1.6-waveT)/.3):waveT<.3?ease(waveT/.3):1;}
     if(state==='intro'){
       introT+=dt;const T=introT;
       wave=T<.3?ease(T/.3):T<1.7?1:T<2?1-ease((T-1.7)/.3):0;
@@ -478,7 +623,7 @@ function update(dt){
     rig.rotation.y=turn*Math.PI;
     rig.rotation.z=Math.sin(t*9)*.05*wave;
     pose.rotation.x=flop*Math.PI/2;
-    py=STAND_Y+(BASE_Y-STAND_Y)*flop+hop+(state==='menu'?Math.abs(Math.sin(t*2.4))*.07:0);
+    py=STAND_Y+(BASE_Y-STAND_Y)*flop+hop+(idle?Math.abs(Math.sin(t*2.4))*.07:0);
     headPivot.rotation.x=-1.12*flop;
     headPivot.rotation.z=Math.sin(t*5)*.14*wave;
     arms[0].rotation.z=-ARM_SPLAY;
@@ -501,10 +646,11 @@ function update(dt){
     if(crashT>1)showOver();
   }
 
+  if(invuln>0){invuln=Math.max(0,invuln-dt);player.visible=invuln===0||Math.floor(t*12)%2===0;}
   if(state==='play'){
     $('dist').textContent=Math.floor(dist/2);
     const bottom=py-.4;
-    for(const o of obstacles){
+    if(invuln<=0)for(const o of obstacles){
       if(Math.abs(o.obj.position.z+.1)<o.d/2+1.1&&Math.abs(o.obj.position.x-px)<1.15){
         if(o.tall||bottom<o.h-.15){crash();break;}
       }
@@ -525,7 +671,7 @@ function update(dt){
   shake=Math.max(0,shake-dt);
   const sx=(Math.random()-.5)*shake*.6,sy=(Math.random()-.5)*shake*.6;
   // close-up while Filda waves, pull back as he turns to slide
-  const zoomTarget=(state==='menu'||(state==='intro'&&introT<2))?1:0;
+  const zoomTarget=(idle||(state==='intro'&&introT<2))?1:0;
   camZoom+=(zoomTarget-camZoom)*Math.min(1,dt*3);
   // close-up is eye-level and straight-on, like the reference picture
   const near=camera.aspect<0.8?{y:1.75,z:6}:{y:1.75,z:5.2};
@@ -542,6 +688,5 @@ function frame(){
 requestAnimationFrame(frame);
 })();
 </script>
-
 </body>
 </html>
