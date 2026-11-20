@@ -524,7 +524,8 @@ function startGame(){
 function continueRun(){
   // clear the stretch right ahead, put Filda back on his belly, and give a moment of safety
   for(let i=obstacles.length-1;i>=0;i--){if(obstacles[i].obj.position.z>-40){scene.remove(obstacles[i].obj);obstacles.splice(i,1);}}
-  player.rotation.set(0,0,0);rig.rotation.set(0,0,0);pose.rotation.x=Math.PI/2;
+  // keep the half-turn from the intro so he faces down the slope, belly down
+  player.rotation.set(0,0,0);rig.rotation.set(0,Math.PI,0);pose.rotation.set(Math.PI/2,0,0);
   py=BASE_Y;vy=0;grounded=true;sinceRow=0;
   state='play';speed=Math.max(14,runSpeed*.85);invuln=2;
   show(null);
