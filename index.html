@@ -1,19 +1,10 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="icon" href="favicon.ico" sizes="any">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-<meta name="theme-color" content="#cfe8f3">
-<meta name="description" content="Go Filda – help Filda the penguin belly-slide down the ice, dodge obstacles and grab fish.">
-<meta property="og:title" content="Go Filda">
-<meta property="og:description" content="Help Filda the penguin belly-slide down the ice, dodge obstacles and grab fish.">
-<meta property="og:type" content="website">
-<meta property="og:image" content="preview.png">
-<meta name="twitter:card" content="summary_large_image">
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Go Filda</title>
+<meta name="theme-color" content="#cfe8f3">
+<link rel="icon" href="favicon.ico" sizes="48x48">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="Go Filda">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -116,6 +107,10 @@ button.back:active{background:rgba(22,50,74,.08)}
 .skin .tag{font-weight:800;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);min-height:12px}
 .skin[aria-checked="true"] .tag{color:#b8640a}
 /* tiny blocky penguin, same build as the 3D one */
+.hats{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.skin.hat{padding:8px 2px 8px;gap:4px;border-radius:14px}
+.skin.hat svg{width:40px;height:40px;display:block}
+.skin.hat .nm{font-size:13px;white-space:nowrap}
 .mini{position:relative;width:46px;height:58px}
 .mini i{position:absolute;display:block}
 .mini .hd{left:17px;top:0;width:12px;height:16px;border-radius:6px 6px 3px 3px;background:var(--w);overflow:hidden}
@@ -131,8 +126,7 @@ button.back:active{background:rgba(22,50,74,.08)}
 .mini .lg,.mini .bd,.mini .hd{outline:1px solid rgba(22,50,74,.1)}
 @media (prefers-reduced-motion:reduce){.hint{transition:none}}
 </style>
-</head>
-<body>
+
 <div id="game" aria-label="Go Filda game"></div>
 
 <div class="hud" id="hud" hidden>
@@ -169,6 +163,8 @@ button.back:active{background:rgba(22,50,74,.08)}
     </div>
     <div class="eyebrow">Pick who slides</div>
     <div class="skins" id="skins" role="radiogroup" aria-label="Characters"></div>
+    <div class="eyebrow">Hats</div>
+    <div class="hats" id="hats" role="radiogroup" aria-label="Hats"></div>
     <button class="go" id="shopPlay" type="button">Play</button>
   </div>
 </div>
@@ -255,7 +251,7 @@ const WHITE=0xefebe6,BLACK=0x1c1c1f;
 const SKINS={
   filda:{name:'Filda',tag:'The original',head:WHITE,cap:BLACK,beak:0xf4a81d,torso:WHITE,arms:BLACK,legIn:WHITE,legOut:WHITE,oval:null},
   beba:{name:'Beba',tag:'Green belly',head:WHITE,cap:WHITE,beak:0xd93a2b,torso:WHITE,arms:BLACK,legIn:0x2f6fd1,legOut:0x2f6fd1,oval:0x3fae4a},
-  dyda:{name:'Dyda',tag:'Sunny legs',head:WHITE,cap:WHITE,beak:0xf4a81d,torso:BLACK,arms:BLACK,legIn:0xf28a1e,legOut:0xf7cf2a,oval:null},
+  dyda:{name:'Dyda',tag:'Sunny legs',head:WHITE,cap:WHITE,beak:0xea5a0c,torso:BLACK,arms:BLACK,legIn:0xf28a1e,legOut:0xf7cf2a,oval:null},
 };
 const P={};
 ['head','cap','beak','torso','arms','legIn','legOut','oval'].forEach(k=>{
@@ -380,6 +376,94 @@ const legGeo=rbox(.44,.684,.42,.04);
 });
 applySkin(skin);
 
+/* ---------- hats: sit on the cap, follow the head ---------- */
+const HM={
+  hatBlack:new THREE.MeshStandardMaterial({color:0x1a1a1d,roughness:.55}),
+  hatRed:new THREE.MeshStandardMaterial({color:0xd3262e,roughness:.5}),
+  bunny:new THREE.MeshStandardMaterial({color:0xf7f3ef,roughness:.85}),
+  pink:new THREE.MeshStandardMaterial({color:0xf29bbd,roughness:.7}),
+  pinkIn:new THREE.MeshStandardMaterial({color:0xffc7da,roughness:.7}),
+  alien:new THREE.MeshStandardMaterial({color:0x6cc24a,roughness:.55}),
+  alienBall:new THREE.MeshStandardMaterial({color:0x8ee05f,roughness:.4,emissive:0x2c6a12,emissiveIntensity:.35}),
+  pumpkin:new THREE.MeshStandardMaterial({color:0xf08a1c,roughness:.6}),
+  stem:new THREE.MeshStandardMaterial({color:0x4f8f2c,roughness:.7}),
+  leaf:new THREE.MeshStandardMaterial({color:0x6dbb3c,roughness:.6,side:THREE.DoubleSide}),
+};
+const dotGeo=new THREE.SphereGeometry(.032,12,10);
+// point on the front of an ellipsoid (centre c, radii r) at x,y
+function onFace(c,r,x,y,out=.006){
+  const k=1-(x/r[0])**2-(y/r[1])**2;
+  return new THREE.Vector3(c[0]+x,c[1]+y,c[2]+r[2]*Math.sqrt(Math.max(0,k))+out);
+}
+function addEyes(g,c,r,dx,dy,size=1){
+  [-dx,dx].forEach(x=>{const e=mesh(dotGeo,P.eye,false);e.scale.setScalar(size);e.scale.y*=1.15;
+    e.position.copy(onFace(c,r,x,dy));g.add(e);});
+}
+function addSquiggle(g,c,r,w,dy,amp=.04){
+  // lowercase "m": starts at the bottom, up, down, up, back to the bottom
+  const pts=[];for(let i=0;i<=32;i++){const u=i/32,x=-w/2+w*u;pts.push(onFace(c,r,x,dy-amp/2+Math.abs(Math.sin(u*Math.PI*2))*amp,.004));}
+  const m=mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),48,.011,6,false),P.eye,false);g.add(m);
+}
+const HAT_Y=.44; // top of Filda's cap
+const HATS={
+  none:{name:'None'},
+  tophat:{name:'Top hat',build(){
+    const g=new THREE.Group();
+    const brim=mesh(new THREE.CylinderGeometry(.36,.36,.035,40),HM.hatBlack);brim.position.y=.06;g.add(brim);
+    const crown=mesh(new THREE.CylinderGeometry(.215,.225,.42,40),HM.hatBlack);crown.position.y=.29;g.add(crown);
+    const top=mesh(new THREE.CylinderGeometry(.215,.215,.01,40),HM.hatBlack);top.position.y=.5;g.add(top);
+    const bandR=mesh(new THREE.CylinderGeometry(.229,.229,.085,40),HM.hatRed);bandR.position.y=.125;g.add(bandR);
+    g.rotation.z=-.07;return g;}},
+  bunny:{name:'Bunny',build(){
+    const g=new THREE.Group(),c=[0,.2,0],r=[.27,.23,.26];
+    const h=mesh(new THREE.SphereGeometry(1,32,22),HM.bunny);h.scale.set(...r);h.position.set(...c);g.add(h);
+    [-1,1].forEach(s=>{
+      const p=new THREE.Group();p.position.set(s*.11,.38,-.02);p.rotation.z=-s*.2;
+      const ear=mesh(new THREE.SphereGeometry(1,20,14),HM.pink);ear.scale.set(.075,.26,.05);ear.position.y=.22;p.add(ear);
+      const inner=mesh(new THREE.SphereGeometry(1,16,12),HM.pinkIn,false);inner.scale.set(.042,.19,.02);inner.position.set(0,.23,.038);p.add(inner);
+      g.add(p);});
+    addEyes(g,c,r,.085,.05);addSquiggle(g,c,r,.11,-.07);
+    return g;}},
+  alien:{name:'Alien',build(){
+    const g=new THREE.Group(),c=[0,.2,0],r=[.29,.24,.27];
+    const h=mesh(new THREE.SphereGeometry(1,32,22),HM.alien);h.scale.set(...r);h.position.set(...c);g.add(h);
+    const stalk=new THREE.CylinderGeometry(.016,.02,.5,8);stalk.translate(0,.25,0);
+    [-1,1].forEach(s=>{
+      const p=new THREE.Group();p.position.set(s*.1,.4,0);p.rotation.z=-s*.42;
+      p.add(mesh(stalk,HM.alien));
+      const ball=mesh(new THREE.SphereGeometry(.065,16,12),HM.alienBall);ball.position.y=.52;p.add(ball);
+      g.add(p);});
+    addEyes(g,c,r,.1,.02,1.5);
+    return g;}},
+  pumpkin:{name:'Pumpkin',build(){
+    const g=new THREE.Group(),c=[0,.2,0],r=[.31,.23,.29];
+    const geo=new THREE.SphereGeometry(1,48,24);const a=geo.attributes.position;
+    for(let i=0;i<a.count;i++){const x=a.getX(i),y=a.getY(i),z=a.getZ(i);
+      const ph=Math.atan2(z,x),k=1-.07*Math.pow(Math.abs(Math.sin(ph*4)),.6)*(1-y*y);
+      a.setXYZ(i,x*k,y*(1-.12*Math.max(0,y)*0),z*k);}
+    geo.computeVertexNormals();
+    const h=mesh(geo,HM.pumpkin);h.scale.set(...r);h.position.set(...c);g.add(h);
+    const stem=mesh(new THREE.CylinderGeometry(.03,.045,.14,10),HM.stem);stem.position.set(0,.47,0);stem.rotation.z=.18;g.add(stem);
+    const leafGeo=new THREE.SphereGeometry(1,14,10);
+    const leaf=mesh(leafGeo,HM.leaf);leaf.scale.set(.09,.018,.05);leaf.position.set(.09,.45,.02);leaf.rotation.z=-.35;g.add(leaf);
+    const curl=mesh(new THREE.TorusGeometry(.04,.009,6,16,Math.PI*1.4),HM.stem,false);curl.position.set(-.06,.47,0);curl.rotation.y=.4;g.add(curl);
+    addEyes(g,c,r,.095,.05,1.1);addSquiggle(g,c,r,.14,-.06);
+    return g;}},
+};
+const hatMeshes={};
+for(const [id,h] of Object.entries(HATS)){if(!h.build)continue;
+  const m=h.build();m.position.y=HAT_Y;m.visible=false;head.add(m);hatMeshes[id]=m;}
+let hat='none';try{const s=localStorage.getItem('filda-hat');if(HATS[s])hat=s;}catch(e){}
+function applyHat(id){for(const k in hatMeshes)hatMeshes[k].visible=k===id;}
+applyHat(hat);
+const HAT_ICONS={
+  none:'<circle cx="20" cy="20" r="12" fill="none" stroke="#9fb4c3" stroke-width="3"/><path d="M12 28 28 12" stroke="#9fb4c3" stroke-width="3" stroke-linecap="round"/>',
+  tophat:'<rect x="11" y="7" width="18" height="24" rx="2" fill="#1a1a1d"/><rect x="11" y="23" width="18" height="5" fill="#d3262e"/><rect x="4" y="29.5" width="32" height="4" rx="2" fill="#1a1a1d"/>',
+  bunny:'<ellipse cx="14" cy="11" rx="4" ry="9.5" fill="#f29bbd" transform="rotate(-12 14 11)"/><ellipse cx="26" cy="11" rx="4" ry="9.5" fill="#f29bbd" transform="rotate(12 26 11)"/><ellipse cx="14" cy="12" rx="1.8" ry="6.5" fill="#ffc7da" transform="rotate(-12 14 12)"/><ellipse cx="26" cy="12" rx="1.8" ry="6.5" fill="#ffc7da" transform="rotate(12 26 12)"/><circle cx="20" cy="27" r="10.5" fill="#fff" stroke="#c9d6df" stroke-width="1.2"/><circle cx="16.3" cy="25.5" r="1.5" fill="#1c1c1f"/><circle cx="23.7" cy="25.5" r="1.5" fill="#1c1c1f"/><path d="M15.5 32Q17.75 26.5 20 32Q22.25 26.5 24.5 32" fill="none" stroke="#1c1c1f" stroke-width="1.2" stroke-linecap="round"/>',
+  alien:'<path d="M16 19 11 6M24 19l5-13" stroke="#5aa83a" stroke-width="1.8" stroke-linecap="round"/><circle cx="11" cy="6" r="3.2" fill="#8ee05f"/><circle cx="29" cy="6" r="3.2" fill="#8ee05f"/><ellipse cx="20" cy="27" rx="12" ry="9.5" fill="#6cc24a"/><ellipse cx="15.5" cy="26.5" rx="2" ry="2.4" fill="#1c1c1f"/><ellipse cx="24.5" cy="26.5" rx="2" ry="2.4" fill="#1c1c1f"/>',
+  pumpkin:'<path d="M20 15c.2-3 1.4-5 3-6" stroke="#4f8f2c" stroke-width="2.6" stroke-linecap="round" fill="none"/><path d="M22 12c3-2 6-1 7 0-2 2-5 2-7 0z" fill="#6dbb3c"/><ellipse cx="13.5" cy="26" rx="8" ry="10" fill="#e07c12"/><ellipse cx="26.5" cy="26" rx="8" ry="10" fill="#e07c12"/><ellipse cx="20" cy="26" rx="7.5" ry="10.5" fill="#f08a1c"/><circle cx="16.5" cy="24" r="1.5" fill="#1c1c1f"/><circle cx="23.5" cy="24" r="1.5" fill="#1c1c1f"/><path d="M15.5 31Q17.75 25.5 20 31Q22.25 25.5 24.5 31" fill="none" stroke="#1c1c1f" stroke-width="1.2" stroke-linecap="round"/>',
+};
+
 /* ---------- obstacles & fish ---------- */
 const G={
   block:rbox(1.6,1,1.2,.1),
@@ -473,7 +557,7 @@ function emitSpray(x){
 /* ---------- state ---------- */
 let state='menu',speed=0,dist=0,fishCount=0,lane=1,px=0,py=STAND_Y,vy=0,grounded=true;
 let sinceRow=0,crashT=0,shake=0,t=0,hintShown=false,introT=0,camZoom=1;
-let waveT=0,invuln=0,runSpeed=14;
+let waveT=0,invuln=0,runSpeed=14,shopLift=0;
 let best=0;try{best=+localStorage.getItem('filda-best')||0;}catch(e){}
 
 function clearWorld(){
@@ -491,7 +575,7 @@ function goHome(){
   show('start');
 }
 function openShop(){
-  state='shop';renderSkins();show('shop');
+  state='shop';renderSkins();renderHats();show('shop');
   setTimeout(()=>{const b=document.querySelector('.skin[aria-checked="true"]');b&&b.focus({preventScroll:true});},50);
 }
 function pickSkin(id){
@@ -509,6 +593,23 @@ function renderSkins(){
       <span class="nm">${k.name}</span><span class="tag">${on?'Selected':k.tag}</span></button>`;
   }).join('');
 }
+function renderHats(){
+  $('hats').innerHTML=Object.entries(HATS).map(([id,h])=>{
+    const on=id===hat;
+    return `<button class="skin hat" type="button" role="radio" aria-checked="${on}" data-id="${id}" tabindex="${on?0:-1}">
+      <svg viewBox="0 0 40 40" aria-hidden="true">${HAT_ICONS[id]}</svg><span class="nm">${h.name}</span></button>`;
+  }).join('');
+}
+function pickHat(id){
+  hat=id;applyHat(id);waveT=1.6;try{localStorage.setItem('filda-hat',id);}catch(e){}
+  renderHats();const b=document.querySelector('.hat[data-id="'+id+'"]');b&&b.focus({preventScroll:true});
+}
+$('hats').addEventListener('click',e=>{const b=e.target.closest('.hat');if(b)pickHat(b.dataset.id);});
+$('hats').addEventListener('keydown',e=>{
+  const ids=Object.keys(HATS),i=ids.indexOf(hat);
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'){pickHat(ids[(i+1)%ids.length]);e.preventDefault();}
+  else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){pickHat(ids[(i+ids.length-1)%ids.length]);e.preventDefault();}
+});
 $('skins').addEventListener('click',e=>{const b=e.target.closest('.skin');if(b)pickSkin(b.dataset.id);});
 $('skins').addEventListener('keydown',e=>{
   const ids=Object.keys(SKINS),i=ids.indexOf(skin);
@@ -686,9 +787,11 @@ function update(dt){
   camZoom+=(zoomTarget-camZoom)*Math.min(1,dt*3);
   // close-up is eye-level and straight-on, like the reference picture
   const near=camera.aspect<0.8?{y:1.75,z:6}:{y:1.75,z:5.2};
+  // in the shop the card is taller, so frame Filda higher up the screen
+  shopLift+=((state==='shop'?1:0)-shopLift)*Math.min(1,dt*4);
   const L=(a,b)=>a+(b-a)*camZoom;
   camera.position.set(px*.55+sx,L(camBase.y,near.y)+sy,L(camBase.z,near.z));
-  camera.lookAt(px*.35,L(camBase.ly,1.5),L(camBase.lz,0));
+  camera.lookAt(px*.35,L(camBase.ly,1.5-1.25*shopLift),L(camBase.lz,0));
   sun.position.set(px+7,14,8);sun.target.position.set(px,0,-6);
 }
 function frame(){
@@ -699,5 +802,5 @@ function frame(){
 requestAnimationFrame(frame);
 })();
 </script>
-</body>
-</html>
+
+</body></html>
