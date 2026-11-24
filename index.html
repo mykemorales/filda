@@ -144,6 +144,15 @@ button.back:active{background:rgba(22,50,74,.08)}
 .mini .lg.l{left:9px;background:linear-gradient(90deg,var(--lo) 50%,var(--li) 50%)}
 .mini .lg.r{right:9px;background:linear-gradient(90deg,var(--li) 50%,var(--lo) 50%)}
 .mini .lg,.mini .bd,.mini .hd{outline:1px solid rgba(22,50,74,.1)}
+.musicBtn{
+  position:fixed;right:max(14px,env(safe-area-inset-right,0px));bottom:calc(env(safe-area-inset-bottom,0px) + 14px);
+  width:44px;height:44px;border:0;border-radius:50%;background:var(--frost);color:var(--ink);
+  display:grid;place-items:center;box-shadow:0 2px 0 rgba(22,50,74,.14);cursor:pointer;z-index:5;padding:0;
+}
+.musicBtn .off{display:none}
+.musicBtn[aria-pressed="false"] .on{display:none}
+.musicBtn[aria-pressed="false"] .off{display:block}
+.credit{font-size:11px;font-weight:700;color:var(--muted);text-align:center}
 @media (prefers-reduced-motion:reduce){.hint{transition:none}}
 </style>
 
@@ -153,6 +162,11 @@ button.back:active{background:rgba(22,50,74,.08)}
   <div class="chip"><span id="dist">0</span><small>m</small></div>
   <div class="chip"><small>Fish</small><span id="fish">0</span></div>
 </div>
+
+<button class="musicBtn" id="musicBtn" type="button" aria-pressed="true" aria-label="Music">
+  <svg class="on" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M9 17V5l11-2v12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="6.5" cy="17" r="2.6" fill="currentColor"/><circle cx="17.5" cy="15" r="2.6" fill="currentColor"/></svg>
+  <svg class="off" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M9 17V5l11-2v12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" opacity=".45"/><circle cx="6.5" cy="17" r="2.6" fill="currentColor" opacity=".45"/><circle cx="17.5" cy="15" r="2.6" fill="currentColor" opacity=".45"/><path d="M3 3l18 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+</button>
 <div class="hint" id="hint" hidden>Swipe ← → to steer · swipe up or tap to jump</div>
 
 <!-- HOME -->
@@ -168,6 +182,7 @@ button.back:active{background:rgba(22,50,74,.08)}
         Shop
       </button>
     </div>
+    <div class="credit">Music: “Aurora” by Cal McEachern (Trex0n), CC0</div>
   </div>
 </div>
 
@@ -716,6 +731,69 @@ $('shopBack').addEventListener('click',goHome);
 $('againBtn').addEventListener('click',continueRun);
 $('homeBtn').addEventListener('click',goHome);
 updateHome();
+
+/* ---------- music ---------- */
+// Played through Web Audio so the loop is sample-exact (an <audio loop> tag leaves a gap at the seam).
+const musicBtn=$('musicBtn');
+const MUSIC_VOL=.35,LOOP_SECONDS=80; // aurora is exactly 80 s and loops seamlessly
+let musicOn=true;try{musicOn=localStorage.getItem('filda-music')!=='off';}catch(e){}
+let actx=null,gain=null,src=null,buf=null,loading=null,fallback=null;
+function pickFile(){
+  const t=document.createElement('audio');
+  return t.canPlayType('audio/ogg; codecs="vorbis"')?'audio/aurora.ogg':'audio/aurora.mp3';
+}
+function loadMusic(){
+  if(loading)return loading;
+  const AC=window.AudioContext||window.webkitAudioContext;
+  if(!AC){loading=Promise.reject();return loading;}
+  actx=new AC();gain=actx.createGain();gain.gain.value=0;gain.connect(actx.destination);
+  loading=fetch(pickFile()).then(r=>{if(!r.ok)throw 0;return r.arrayBuffer();})
+    .then(ab=>new Promise((ok,no)=>actx.decodeAudioData(ab,ok,no)))
+    .then(b=>{buf=b;});
+  return loading;
+}
+function startSource(){
+  if(src||!buf)return;
+  src=actx.createBufferSource();src.buffer=buf;src.loop=true;
+  // if the decoder kept encoder padding, skip it so the loop stays exactly 80 s
+  const extra=buf.duration-LOOP_SECONDS;
+  if(extra>.002){src.loopStart=Math.min(extra,1105/buf.sampleRate);src.loopEnd=src.loopStart+LOOP_SECONDS;}
+  src.connect(gain);src.start(0,src.loopStart||0);
+}
+// last resort (e.g. page opened straight from disk, where fetch is blocked): plain audio tag
+function useFallback(){
+  if(!fallback){fallback=new Audio(pickFile());fallback.loop=true;fallback.volume=MUSIC_VOL;}
+  return fallback;
+}
+function playMusic(){
+  if(!musicOn||document.hidden)return;
+  loadMusic().then(()=>{
+    if(!musicOn||document.hidden)return;
+    if(actx.state!=='running')actx.resume();
+    startSource();
+    const g=gain.gain,now=actx.currentTime;
+    g.cancelScheduledValues(now);g.setValueAtTime(g.value,now);g.linearRampToValueAtTime(MUSIC_VOL,now+.9);
+  }).catch(()=>{const p=useFallback().play();if(p&&p.catch)p.catch(()=>{});});
+}
+function stopMusic(ms){
+  if(fallback){fallback.pause();}
+  if(!actx||!gain)return;
+  const g=gain.gain,now=actx.currentTime;
+  g.cancelScheduledValues(now);g.setValueAtTime(g.value,now);g.linearRampToValueAtTime(0,now+ms/1000);
+  setTimeout(()=>{if((!musicOn||document.hidden)&&actx.state==='running')actx.suspend();},ms+50);
+}
+function syncMusicBtn(){musicBtn.setAttribute('aria-pressed',String(musicOn));musicBtn.setAttribute('aria-label',musicOn?'Mute music':'Play music');}
+function toggleMusic(){
+  musicOn=!musicOn;try{localStorage.setItem('filda-music',musicOn?'on':'off');}catch(e){}
+  syncMusicBtn();if(musicOn)playMusic();else stopMusic(300);
+}
+syncMusicBtn();
+musicBtn.addEventListener('click',()=>{toggleMusic();musicBtn.blur();});
+// browsers only allow sound after the player interacts, so start on the first tap or key
+function firstTouch(){playMusic();window.removeEventListener('pointerdown',firstTouch,true);window.removeEventListener('keydown',firstTouch,true);}
+window.addEventListener('pointerdown',firstTouch,true);window.addEventListener('keydown',firstTouch,true);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)stopMusic(150);else playMusic();});
+window.addEventListener('keydown',e=>{if((e.key==='m'||e.key==='M')&&!e.repeat)toggleMusic();});
 
 /* ---------- input ---------- */
 function steer(d){if(state!=='play')return;lane=Math.max(0,Math.min(2,lane+d));}
