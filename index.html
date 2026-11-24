@@ -734,21 +734,30 @@ updateHome();
 
 /* ---------- music ---------- */
 // Played through Web Audio so the loop is sample-exact (an <audio loop> tag leaves a gap at the seam).
+// Safari only allows sound when the audio is started *inside* a tap/key handler, so the
+// AudioContext is created and resumed synchronously there; the file loads afterwards.
 const musicBtn=$('musicBtn');
 const MUSIC_VOL=.35,LOOP_SECONDS=80; // aurora is exactly 80 s and loops seamlessly
+const FROM_DISK=location.protocol==='file:'; // fetch is blocked there, so use a plain audio tag
 let musicOn=true;try{musicOn=localStorage.getItem('filda-music')!=='off';}catch(e){}
-let actx=null,gain=null,src=null,buf=null,loading=null,fallback=null;
-function pickFile(){
-  const t=document.createElement('audio');
-  return t.canPlayType('audio/ogg; codecs="vorbis"')?'audio/aurora.ogg':'audio/aurora.mp3';
+let actx=null,gain=null,src=null,buf=null,loading=null,fallback=null,unlocked=false;
+// iPhone: play even when the ring/silent switch is on silent (Safari 17+)
+try{if(navigator.audioSession)navigator.audioSession.type='playback';}catch(e){}
+function ensureCtx(){
+  if(actx)return actx;
+  const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return null;
+  actx=new AC();gain=actx.createGain();gain.gain.value=0;gain.connect(actx.destination);
+  return actx;
+}
+function decode(url){
+  return fetch(url).then(r=>{if(!r.ok)throw 0;return r.arrayBuffer();})
+    .then(ab=>new Promise((ok,no)=>actx.decodeAudioData(ab,ok,no)));
 }
 function loadMusic(){
   if(loading)return loading;
-  const AC=window.AudioContext||window.webkitAudioContext;
-  if(!AC){loading=Promise.reject();return loading;}
-  actx=new AC();gain=actx.createGain();gain.gain.value=0;gain.connect(actx.destination);
-  loading=fetch(pickFile()).then(r=>{if(!r.ok)throw 0;return r.arrayBuffer();})
-    .then(ab=>new Promise((ok,no)=>actx.decodeAudioData(ab,ok,no)))
+  if(FROM_DISK||!ensureCtx()){loading=Promise.reject();return loading;}
+  const ogg=document.createElement('audio').canPlayType('audio/ogg; codecs="vorbis"');
+  loading=(ogg?decode('audio/aurora.ogg').catch(()=>decode('audio/aurora.mp3')):decode('audio/aurora.mp3'))
     .then(b=>{buf=b;});
   return loading;
 }
@@ -760,23 +769,33 @@ function startSource(){
   if(extra>.002){src.loopStart=Math.min(extra,1105/buf.sampleRate);src.loopEnd=src.loopStart+LOOP_SECONDS;}
   src.connect(gain);src.start(0,src.loopStart||0);
 }
-// last resort (e.g. page opened straight from disk, where fetch is blocked): plain audio tag
-function useFallback(){
-  if(!fallback){fallback=new Audio(pickFile());fallback.loop=true;fallback.volume=MUSIC_VOL;}
+function getFallback(){
+  if(!fallback){fallback=new Audio('audio/aurora.mp3');fallback.loop=true;fallback.volume=MUSIC_VOL;fallback.preload='auto';}
   return fallback;
+}
+function playFallback(){const p=getFallback().play();if(p&&p.catch)p.catch(()=>{});}
+// must run synchronously inside a user gesture
+function unlock(){
+  if(FROM_DISK){if(musicOn&&!document.hidden){playFallback();unlocked=!getFallback().paused||unlocked;}return;}
+  if(!ensureCtx())return;
+  if(actx.state!=='running'){const r=actx.resume();if(r&&r.catch)r.catch(()=>{});}
+  // old iOS trick: playing a one-sample silent buffer in the gesture unlocks output
+  const b=actx.createBuffer(1,1,22050),s0=actx.createBufferSource();s0.buffer=b;s0.connect(actx.destination);s0.start(0);
+  unlocked=true;
 }
 function playMusic(){
   if(!musicOn||document.hidden)return;
+  if(FROM_DISK){playFallback();return;}
   loadMusic().then(()=>{
     if(!musicOn||document.hidden)return;
-    if(actx.state!=='running')actx.resume();
+    if(actx.state!=='running'){const r=actx.resume();if(r&&r.catch)r.catch(()=>{});}
     startSource();
     const g=gain.gain,now=actx.currentTime;
     g.cancelScheduledValues(now);g.setValueAtTime(g.value,now);g.linearRampToValueAtTime(MUSIC_VOL,now+.9);
-  }).catch(()=>{const p=useFallback().play();if(p&&p.catch)p.catch(()=>{});});
+  }).catch(playFallback);
 }
 function stopMusic(ms){
-  if(fallback){fallback.pause();}
+  if(fallback)fallback.pause();
   if(!actx||!gain)return;
   const g=gain.gain,now=actx.currentTime;
   g.cancelScheduledValues(now);g.setValueAtTime(g.value,now);g.linearRampToValueAtTime(0,now+ms/1000);
@@ -785,13 +804,20 @@ function stopMusic(ms){
 function syncMusicBtn(){musicBtn.setAttribute('aria-pressed',String(musicOn));musicBtn.setAttribute('aria-label',musicOn?'Mute music':'Play music');}
 function toggleMusic(){
   musicOn=!musicOn;try{localStorage.setItem('filda-music',musicOn?'on':'off');}catch(e){}
-  syncMusicBtn();if(musicOn)playMusic();else stopMusic(300);
+  syncMusicBtn();if(musicOn){unlock();playMusic();}else stopMusic(300);
 }
 syncMusicBtn();
 musicBtn.addEventListener('click',()=>{toggleMusic();musicBtn.blur();});
-// browsers only allow sound after the player interacts, so start on the first tap or key
-function firstTouch(){playMusic();window.removeEventListener('pointerdown',firstTouch,true);window.removeEventListener('keydown',firstTouch,true);}
-window.addEventListener('pointerdown',firstTouch,true);window.addEventListener('keydown',firstTouch,true);
+// keep trying on every tap/key until the browser actually lets sound play
+// (iOS Safari counts the end of a tap, not pointerdown)
+const GESTURES=['pointerdown','pointerup','touchend','click','keydown'];
+function onGesture(e){
+  if(e.target&&e.target.closest&&e.target.closest('#musicBtn'))return; // the button handles itself
+  unlock();playMusic();
+  const ok=FROM_DISK?(fallback&&!fallback.paused):(actx&&actx.state==='running');
+  if(ok||!musicOn)GESTURES.forEach(g=>window.removeEventListener(g,onGesture,true));
+}
+GESTURES.forEach(g=>window.addEventListener(g,onGesture,true));
 document.addEventListener('visibilitychange',()=>{if(document.hidden)stopMusic(150);else playMusic();});
 window.addEventListener('keydown',e=>{if((e.key==='m'||e.key==='M')&&!e.repeat)toggleMusic();});
 
